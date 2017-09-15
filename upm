@@ -1,9 +1,11 @@
 #!/bin/sh
 
-VERSION='0.1.0+20170913'
-
 main() {
-  [ $# -eq 0 ] && exitHelp
+  setAppFile
+  setAppPath
+  setAppName
+  setAppVersion
+  [ $# -eq 0 ] && exitHelp 1
 
   case "$1" in
     -H|--help)    exitHelp    ;;
@@ -11,100 +13,64 @@ main() {
   esac
 
   setPackageManager
-  [ -z "$PACKAGE_MANAGER" ] && exitError 'Cannot find a known Package Manager.'
+  [ -z "$package_manager" ] && exitError 'Cannot find a known Package Manager.'
 
-  setAppFile
-  PLUGIN="$APP_FILE-$PACKAGE_MANAGER.sh"
-  if [ -e "$PLUGIN" ]; then
-    setSudo
-    "$PLUGIN" "$@"
-  else
-    exitError "'$PLUGIN' is missing."
-  fi
-}
+  setSudo
 
-exitError() {
-  printf "%s\n" "ERROR: $*" 2>&
-  printHelp 2>&
-  exit 1
-}
-
-exitHelp() {
-  printHelp
-  exit
-}
-
-exitVersion() {
-  printf "%s\n" "$APP_NAME v$VERSION"
-  exit
-}
-
-printHelp() {
-	printf %s "\
-    VERSION: $version
-
-  USAGE: $APP_NAME <object> <action> <options> <params>
-
-  PACKAGE ACTIONS
-  find <package>         - search index for package
-  info <package>         - show quick info about package
-  show <package>         - show detailed info about package
-  install <package>      - install a new package
-  remove <package>       - remove an installed package
-  lock <package>         - lock a package to prevent updating
-  unlock <package>       - unlock a package to allow updating
-  set <option> <package> - set a package as [manually|auto] installed
-  list [<option>]        - list [all(default)|locked|orphans|manual] installed packages
-  orphans                - alias for 'list orphans'
-  locked                 - alias for 'list locked'
-  upgrade                - upgrade packages and dependencies
-  update                 - like 'upgrade', but only for non-Major-version-number changes
-
-  REPO ACTIONS
-  repo add <repo>      - add a repo
-  repo remove <repo>   - remove a repo
-  repo <action> <repo> - [enable|disable] a repo
-  repo list [<option>] - list [enabled(default)|disabled|all] repos
-  repos                - alias for 'repo list'
-
-  INDEX ACTIONS
-  refresh - update the package list from all repos
-
-  APP OPTIONS
-  -H, --help       - show this help
-  -V, --version    - display version
-
-  DESCRIPTION
-  * A Universal cross-distribution (Unix) Package Manager front-end to all
-    GNU/Linux (Unix) package.
-  * A single, and sane?, way of working on multiple GNU/Linux distros.
-
-  EXAMPLES
-  $APP_NAME find upm
-  $APP_NAME install upm
-
-  SIMILAR/INSPIRATION/REFERENCES
-  * http://yum.baseurl.org/wiki/apt2yum
-  "
-  DEPENDENCIES: POSIX shell, readlink
-
-  HOMEPAGE: https://gitlab.com/go2null/upm
+  echo $SUDO
+  echo $package_manager
+  "$package_manager" "$@"
 }
 
 setAppFile() {
-  APP_FILE=$(readlink -f -- "$0")
+  app_file="$(readlink -e "$0")"
+}
+
+setAppPath() {
+  app_path="${app_file%/*}"
+}
+
+setAppVersion() {
+  app_version="$(cat "$app_path/VERSION")"
+}
+
+exitHelp() {
+  cat "$app_path/README.md"
+	printf "\n%s\n" "VERSION: $app_version"
+  exit $1
+}
+
+exitVersion() {
+  printf "%s\n" "$app_name v$app_version"
+  exit
+}
+
+# plugins are named `upm-<any_pkg_mgr_executible>`
+setPackageManager() {
+  for file in $(find "$app_path" -maxdepth 1 -type f -name "$app_name-*"); do
+    plugin=${file#$app_file-}
+    if isCommand "$plugin"; then
+      package_manager="$plugin"
+      break
+    fi
+  done
+}
+
+isCommand() {
+  command -v "$1" >/dev/null 2>&1
 }
 
 setAppName() {
-  APP_NAME=${0##*/}
+  app_name=${app_file##*/}
 }
 
-setPackageManager() {
-  PACKAGE_MANAGER='xbps'
+exitError() {
+  printf "%s\n" "$app_name error: $*" 2>&1
+  exit 1
 }
 
 setSudo() {
-  [ "$USER" != 'root' ] && which sudo >/dev/null && SUDO='sudo'
+  [ "$USER" != 'root' ] && isCommand 'sudo' && SUDO='sudo'
 }
 
 main "$@"
