@@ -1,76 +1,39 @@
 #!/bin/sh
 
-main() {
-  setAppFile
-  setAppPath
-  setAppName
-  setAppVersion
-  [ $# -eq 0 ] && exitHelp 1
+. ./helpers.sh
+
+Main() {
+  SetAppFile
+  SetAppPath
+  SetAppName
+  [ $# -eq 0 ] && ExitHelp 1
 
   case "$1" in
-    -H|--help)    exitHelp    ;;
-    -V|--version) exitVersion ;;
+  --debug)      log_level='debug' ;;
+  -h|--help)    ExitHelp          ;;
+  -V|--version) ExitVersion       ;;
+  -v|--verbose) SetVerbose; shift ;;
   esac
 
-  setPackageManager
-  [ -z "$package_manager" ] && exitError 'Cannot find a known Package Manager.'
-
-  setSudo
-
-  echo $SUDO
-  echo $package_manager
+  SetPackageManager
+  SetSudo
   "$package_manager" "$@"
 }
 
-setAppFile() {
-  app_file="$(readlink -e "$0")"
-}
-
-setAppPath() {
-  app_path="${app_file%/*}"
-}
-
-setAppVersion() {
-  app_version="$(cat "$app_path/VERSION")"
-}
-
-exitHelp() {
-  cat "$app_path/README.md"
-	printf "\n%s\n" "VERSION: $app_version"
-  exit $1
-}
-
-exitVersion() {
-  printf "%s\n" "$app_name v$app_version"
-  exit
-}
-
 # plugins are named `upm-<any_pkg_mgr_executible>`
-setPackageManager() {
+# TODO: support multiple package managers, ex. apt-get, aptitude, apt
+# TODO: support non-OS package managers, ex. gem and npm
+SetPackageManager() {
   for file in $(find "$app_path" -maxdepth 1 -type f -name "$app_name-*"); do
     plugin=${file#$app_file-}
-    if isCommand "$plugin"; then
+    if IsCommand "$plugin"; then
       package_manager="$plugin"
       break
     fi
   done
+
+  [ -z "$package_manager" ] && ExitError 'Cannot find a known Package Manager.'
+  [ -n "$verbose" ] && LogInfo "Detected '$package_manager' package manager"
 }
 
-isCommand() {
-  command -v "$1" >/dev/null 2>&1
-}
-
-setAppName() {
-  app_name=${app_file##*/}
-}
-
-exitError() {
-  printf "%s\n" "$app_name error: $*" 2>&1
-  exit 1
-}
-
-setSudo() {
-  [ "$USER" != 'root' ] && isCommand 'sudo' && SUDO='sudo'
-}
-
-main "$@"
+Main "$@"
