@@ -1,11 +1,8 @@
 #!/bin/sh
 
-. ./helpers.sh
-
 Main() {
-  SetAppFile
-  SetAppPath
-  SetAppName
+  SourceHelpers
+  SetAppInfo
   [ $# -eq 0 ] && ExitHelp 1
 
   case "$1" in
@@ -16,24 +13,35 @@ Main() {
   esac
 
   SetPackageManager
+  . "$package_manager"
+
   SetSudo
-  "$package_manager" "$@"
+  Switchboard "$@"
 }
 
 # plugins are named `upm-<any_pkg_mgr_executible>`
 # TODO: support multiple package managers, ex. apt-get, aptitude, apt
 # TODO: support non-OS package managers, ex. gem and npm
 SetPackageManager() {
-  for file in $(find "$app_path" -maxdepth 1 -type f -name "$app_name-*"); do
-    plugin=${file#$app_file-}
-    if IsCommand "$plugin"; then
-      package_manager="$plugin"
+  for _file in $(find "$app_path" -maxdepth 1 -type f -name "$app_name-*"); do
+    _plugin=${_file#$app_file-}
+    if IsCommand "$_plugin"; then
+      package_manager="$_file"
       break
     fi
   done
 
   [ -z "$package_manager" ] && ExitError 'Cannot find a known Package Manager.'
-  [ -n "$verbose" ] && LogInfo "Detected '$package_manager' package manager"
+  LogInfo "Detected package manager - '$package_manager'"
+}
+
+SourceHelpers() {
+  _path="$(readlink -e "$0")"
+  _path="${_path%/*}"
+
+  for _file in $(find "$_path" -maxdepth 1 -type f -name 'helpers-*'); do
+  	. "$_file"
+  done
 }
 
 Main "$@"

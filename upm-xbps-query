@@ -1,76 +1,12 @@
 #!/bin/sh
 
-Main() {
-	case "$1" in
-	add)            Repo        "$@" ;;
-	disable)        Repo        "$@" ;;
-	enable)         Repo        "$@" ;;
-	help)           Pm         "$@" ;;
-	pm)      shift; Pm         "$@" ;;
-	remove)         Repo        "$@" ;;
-	repo)    shift; Repo        "$@" ;;
-	repos)   shift; Repo 'list' "$@" ;;
-	refresh)        Db          "$@" ;;
-	db)      shift; Db          "$@" ;;
-
-	find)    shift; xbps-query --repository --search "$@" ;;
-	info)    shift; info ;;
-	show)    shift; xbps-query -RS "$@" ;;
-	lock)    set "$@" ;;
-	unlock)  set "$@" ;;
-	set)     shift; set "$@" ;;
-	list)    shift; PackageList "$@" ;;
-	locked)  PackageList "$@" ;;
-	orphans) PackageList "$@" ;;
-	manual)  PackageList "$@" ;;
-	upgrade) shift; $SUDO xbps-install --sync --update "$@" ;;
-	update)  shift; echo "TODO" ;;
-
-	*)       ExitInvalidArgs "$*" ;;
-	esac
-}
-
-Db() {
-	object='db'
-	action="$1"
-	shift
-	case "$action" in
-	refresh) DbRefresh ;;
-	*) ExitInvalidArgs "$object $*" ;;
-	esac
-}
-
-DbRefresh() {
-	$SUDO xbps-install --sync
-}
-
-Pm() {
-	object='pm'
-	action="$1"
-	shift
-	case "$action" in
-	help) PmHelp ;;
-	*) ExitInvalidArgs "$object $*" ;;
-	esac
-}
-
 PmHelp() {
+	PrintHeader 'xbps-query'
+	xbps-query   --help
+	PrintHeader 'xbps-install'
 	xbps-install --help
-	xbps-query --help
-}
-
-Repo() {
-	object='repo'
-	action="$1"
-	shift
-	case "$action" in
-	add)     RepoAdd     "$@" ;;
-	remove)  RepoRemove  "$@" ;;
-	enable)  RepoEnable  "$@" ;;
-	disable) RepoDisable "$@" ;;
-	list)    RepoList    "$@" ;;
-	*) ExitInvalidArgs "$object $*" ;;
-	esac
+	PrintHeader 'xbps-remove'
+	xbps-remove  --help
 }
 
 RepoAdd() {
@@ -96,58 +32,84 @@ RepoDisable() {
 	ExitNotImplemented "$object $action"
 }
 
-RepoList() {
-	if [ $# -eq 0 ]; then
-		option='enabled'
-	else
-		option="$1"
-		shift
-	fi
-
-	case "$option" in
-	all)      xbps-query --repository --search 'void-repo' ;;
-	enabled)  xbps-query --list-repos ;;
-	disabled) ExitNotImplemented "$object $action $option" ;;
-	*) ExitInvalidArgs "$object $option $*" ;;
-	esac
+RepoListAll() {
+	xbps-query --repository --search 'void-repo'
 }
 
-info() {
+RepoListEnabled() {
+	xbps-query --list-repos
+}
+
+RepoListDisabled() {
+	ExitNotImplemented "$object $action $option"
+}
+
+DbRefresh() {
+	$SUDO xbps-install --sync
+}
+
+PkgFind() {
+	xbps-query --repository --search "$@"
+}
+
+PkgInfo() {
 	xbps-query --repository --search "$@" \
 		| grep -vE '^[aflmr]|^so' \
 		| grep -E --color=always '^[^:]*[:[:space:]]'
 }
 
-set() {
-	case "$1" in
-	lock)   xbps-pkgdb -mode 'hold' ;;
-	unlock) xbps-pkgdb -mode 'unhold' ;;
-	manual) xbps-pkgdb -mode 'manual' ;;
-	auto)   xbps-pkgdb -mode 'auto' ;;
-	*) ExitError "Unknown package set option '$@'" ;;
-	esac
+PkgShow() {
+	xbps-query -RS "$@"
 }
 
-PackageList() {
-	if [ $# -eq 0 ]; then
-		option='all'
-	else
-		option="$1"
-		shift
-	fi
+PkgInstall() {
+	$SUDO xbps-install "$@"
+}
 
-	case "$option" in
-	all)     xbps-query --list-pkgs ;;
-	locked)  xbps-query --list-hold-pkgs ;;
-	manual)  xbps-query --list-manual-pkgs ;;
-	orphans) xbps-query --list-orphans ;;
-	*) ExitError "Unknown package list option '$@'" ;;
-	u
-	esac
+PkgUninstall() {
+	$SUDO xbps-remove "$@"
+}
+
+PkgLock() {
+	xbps-pkgdb -mode 'hold' "$@"
+}
+
+PkgUnlock() {
+	xbps-pkgdb -mode 'unhold' "$@"
+}
+
+PkgSetManual() {
+	xbps-pkgdb -mode 'manual' "$@"
+}
+
+PkgSetAuto() {
+	xbps-pkgdb -mode 'auto' "$@"
+}
+
+PkgListAll()     {
+	xbps-query --list-pkgs
+}
+
+PkgListLocked()  {
+	xbps-query --list-hold-pkgs
+}
+
+PkgListManual()  {
+	xbps-query --list-manual-pkgs
+}
+
+PkgListOrphans() {
+	xbps-query --list-orphans
+}
+
+PkgUpgrade() {
+	$SUDO xbps-install --sync --update "$@"
+}
+
+PkgUpdate() {
+	ExitNotImplemented "$object $action"
 }
 
 Unknown() {
 	xbps-$*
 }
-
-Main "$@"

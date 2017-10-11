@@ -12,19 +12,17 @@ APP OPTIONS
 `-v`, `--verbose`    - show progress info messages
 
 OBJECTS
-`pm`   - package manager
-`repo` - remote package repository
-`db`   - local database index of available packages
-`pkg`  - package name
+`m`, `pm`   - package manager
+`r`, `repo` - package repository
+`d`, `db`   - local database index of available packages
+`p`, `pkg`  - package name
 
 PACKAGE MANAGER ACTIONS
 `[pm] help`   - display the package manager help
 `[pm] <args>` - pass `<args>` directly to the package manager
 
 REPO ACTIONS
-`[repo] add <repo>`      - add a repo
-`[repo] remove <repo>`   - remove a repo
-`[repo] <action> <repo>` - [`enable`|`disable`] a repo
+`[repo] <action> <repo>` - [`add`|`remove`|`enable`|`disable`] a repo
 `repo list [<option>]`   - list [`enabled`(default)|`disabled`|`all`] repos
 `repos`                  - alias for `repo list`
 
