@@ -54,3 +54,5 @@ SIMILAR/INSPIRATION/REFERENCES
 - http://yum.baseurl.org/wiki/apt2yum
 
 HOMEPAGE: https://gitlab.com/go2null/upm
+
+LICENCE: GPL v3+
