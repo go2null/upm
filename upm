@@ -39,6 +39,8 @@ SourceHelpers() {
   _path="$(readlink -e "$0")"
   _path="${_path%/*}"
 
+	. "$_path/router.sh"
+	. "$_path/base.sh"
   for _file in $(find "$_path" -maxdepth 1 -type f -name 'helpers-*'); do
   	. "$_file"
   done

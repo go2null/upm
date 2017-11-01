@@ -53,7 +53,7 @@ PkgFind() {
 }
 
 PkgInfo() {
-	xbps-query --repository --search "$@" \
+	PkgShow "$@" \
 		| grep -vE '^[aflmr]|^so' \
 		| grep -E --color=always '^[^:]*[:[:space:]]'
 }

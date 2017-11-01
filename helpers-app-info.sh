@@ -1,4 +1,4 @@
-#!/bin/sh # this is enable syntax highlighting
+#!/bin/sh # this is to enable syntax highlighting
 
 # source this file
 

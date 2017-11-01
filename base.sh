@@ -35,28 +35,23 @@ RepoDisable() {
 }
 
 RepoListAll() {
-	ExitNotImplemented "$object $action"
-	xbps-query --repository --search 'void-repo'
+	ExitNotImplemented "$object $action $option"
 }
 
 RepoListEnabled() {
-	ExitNotImplemented "$object $action"
-	xbps-query --list-repos
+	ExitNotImplemented "$object $action $option"
 }
 
 RepoListDisabled() {
-	ExitNotImplemented "$object $action"
 	ExitNotImplemented "$object $action $option"
 }
 
 DbRefresh() {
 	ExitNotImplemented "$object $action"
-	$SUDO xbps-install --sync
 }
 
 PkgFind() {
 	ExitNotImplemented "$object $action"
-	xbps-query --repository --search "$@"
 }
 
 PkgInfo() {
@@ -84,27 +79,27 @@ PkgUnlock() {
 }
 
 PkgSetManual() {
-	ExitNotImplemented "$object $action"
+	ExitNotImplemented "$object $action $option"
 }
 
 PkgSetAuto() {
-	ExitNotImplemented "$object $action"
+	ExitNotImplemented "$object $action $option"
 }
 
 PkgListAll()     {
-	ExitNotImplemented "$object $action"
+	ExitNotImplemented "$object $action $option"
 }
 
 PkgListLocked()  {
-	ExitNotImplemented "$object $action"
+	ExitNotImplemented "$object $action $option"
 }
 
 PkgListManual()  {
-	ExitNotImplemented "$object $action"
+	ExitNotImplemented "$object $action $option"
 }
 
 PkgListOrphans() {
-	ExitNotImplemented "$object $action"
+	ExitNotImplemented "$object $action $option"
 }
 
 PkgUpgrade() {
